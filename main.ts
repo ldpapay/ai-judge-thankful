@@ -20,7 +20,7 @@
 //   5. Freshness: its own voice and images, no stock phrases like
 //      "thank you for your hard work" and no familiar thank-you note.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // The entry text. Paragraphs are joined with a blank line; there is no
@@ -45,4 +45,12 @@ if (TEXT.trim().length === 0) {
 
 const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 mkdirSync(OUTPUT_DIR, { recursive: true });
-writeFileSync(join(OUTPUT_DIR, "entry.txt"), TEXT, "utf8");
+const OUT_PATH = join(OUTPUT_DIR, "entry.txt");
+writeFileSync(OUT_PATH, TEXT, "utf8");
+
+// Read the file back and check it holds exactly the text above, so a
+// partial or mistranscoded write fails here instead of reaching the
+// judge as a different entry.
+if (readFileSync(OUT_PATH, "utf8") !== TEXT) {
+  throw new Error("entry.txt does not match the entry text after writing");
+}
